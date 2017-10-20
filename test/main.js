@@ -12,6 +12,7 @@ describe('Generate()', function () {
   let output;
 
   const mockEnvFile = content => s.stub(fs, 'readFileSync').returns(content);
+  const setEnvFileExists = exists => s.stub(fs, 'existsSync').returns(exists);
 
   beforeEach(function() {
     output = '';
@@ -20,6 +21,7 @@ describe('Generate()', function () {
     s.stub(fs, 'appendFileSync').callsFake(function fakeFn(path, data) {
       output += data;
     });
+    s.stub(fs, 'unlinkSync').callsFake(() => {});
   });
 
   afterEach(function() {
@@ -27,6 +29,7 @@ describe('Generate()', function () {
   });
 
   it('should take values from .env', function () {
+    setEnvFileExists(true);
     mockEnvFile('test=val\ntest2=val2');
   
     service.generate();
@@ -35,6 +38,7 @@ describe('Generate()', function () {
   });
 
   it('should use the whitelistet values from process.env', function () {
+    setEnvFileExists(false);
     mockEnvFile('');
     process.env.test='value';
     process.env.test2='value2';
@@ -47,6 +51,7 @@ describe('Generate()', function () {
   });
 
   it('should prioritize values from env over values read from the .env file', function () {
+    setEnvFileExists(true);
     mockEnvFile('DUPE=valueFromFile\nVALUE_FILE=fileValue');
     process.env.DUPE='valueFromProcessEnv';
     process.env.ENV_VALUE='envValue';
