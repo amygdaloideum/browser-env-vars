@@ -1,0 +1,34 @@
+{
+  "name": "browser-env-vars",
+  "version": "1.0.0",
+  "description": "Enable configuring your frontend application with environment variables.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amygdaloideum/browser-env-vars.git"
+  },
+  "keywords": [
+    "env",
+    ".env",
+    "environment",
+    "variables",
+    "config",
+    "settings",
+    "fronend",
+    "browser"
+  ],
+  "readmeFilename": "README.md",
+  "author": "Daniel Bornstrand",
+  "license": "ISC",
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1",
+    "sinon": "^4.0.1"
+  }
+}
