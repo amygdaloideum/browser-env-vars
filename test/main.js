@@ -1,5 +1,4 @@
 const expect = require('chai').expect;
-const mock = require('mock-fs');
 const sinon = require('sinon');
 
 const fs = require('fs');
