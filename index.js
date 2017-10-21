@@ -11,6 +11,7 @@ function generate(o) {
     outFile: o.outFile || 'config.js',
     readFile: o.readFile || '.env',
     whitelist: o.whitelist && o.whitelist.length ? o.whitelist : false,
+    esm: !!o.esm,
     json: path.extname(o.outFile || 'config.js').toUpperCase() === '.JSON',
   };
 
@@ -25,7 +26,7 @@ function generate(o) {
     fs.unlinkSync(options.outFile);
   }
   if (!options.json) {
-    fs.appendFileSync(options.outFile, 'module.exports = ');
+    fs.appendFileSync(options.outFile, options.esm ? 'export default ' : 'module.exports = ');
   }
 
   const result = valuesFromFile;
@@ -37,7 +38,7 @@ function generate(o) {
     });
   }
 
-  fs.appendFileSync(options.outFile, JSON.stringify(result));
+  fs.appendFileSync(options.outFile, JSON.stringify(result, null, 2));
 }
 
 module.exports = {

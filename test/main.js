@@ -35,7 +35,7 @@ describe('Generate()', function () {
   
     service.generate();
 
-    expect(output).to.equal('module.exports = {"test":"val","test2":"val2"}');
+    expect(output).to.equal(`module.exports = {\n  "test": "val",\n  "test2": "val2"\n}`);
   });
 
   it('should use the whitelisted values from process.env', function () {
@@ -48,7 +48,7 @@ describe('Generate()', function () {
       whitelist: ['test', 'test2'],
     };
     service.generate(options); 
-    expect(output).to.equal('module.exports = {"test":"value","test2":"value2"}');
+    expect(output).to.equal('module.exports = {\n  "test": "value",\n  "test2": "value2"\n}');
   });
 
   it('should ignore whitelisted values that does not exist in the enviroment', function () {
@@ -59,7 +59,7 @@ describe('Generate()', function () {
       whitelist: ['TEST', 'VALUE_THAT_DOES_NOT_EXIST_IN_THE_ENV'],
     };
     service.generate(options); 
-    expect(output).to.equal('module.exports = {"TEST":"value"}');
+    expect(output).to.equal('module.exports = {\n  "TEST": "value"\n}');
   });
 
   it('should prioritize values from env over values read from the .env file', function () {
@@ -72,7 +72,7 @@ describe('Generate()', function () {
       whitelist: ['DUPE', 'ENV_VALUE'],
     };
     service.generate(options); 
-    expect(output).to.equal('module.exports = {"DUPE":"valueFromProcessEnv","VALUE_FILE":"fileValue","ENV_VALUE":"envValue"}');
+    expect(output).to.equal('module.exports = {\n  "DUPE": "valueFromProcessEnv",\n  "VALUE_FILE": "fileValue",\n  "ENV_VALUE": "envValue"\n}');
   });
 
   it('should delete the previous output file if it exists', function () {
@@ -100,7 +100,7 @@ describe('Generate()', function () {
     };
 
     service.generate(options); 
-    expect(output).to.equal('{"TEST":"value"}');
+    expect(output).to.equal('{\n  "TEST": "value"\n}');
   });
 
   it('should export a json file if the outFile option has a json file extension', function () {
@@ -114,7 +114,7 @@ describe('Generate()', function () {
     };
 
     service.generate(options); 
-    expect(output).to.equal('{"TEST":"value"}');
+    expect(output).to.equal('{\n  "TEST": "value"\n}');
   });
 
   it('should read from the specified readFile path if provided', function () {
@@ -128,6 +128,20 @@ describe('Generate()', function () {
     };
 
     service.generate(options); 
-    expect(output).to.equal('module.exports = {"TEST":"value"}');
+    expect(output).to.equal('module.exports = {\n  "TEST": "value"\n}');
+  });
+
+  it('should output a ES6 module if the esm flag is set', function () {
+    setFileExists('.env', false);
+    setFileExists('config.js', false);
+    process.env.TEST = 'value';
+
+    const options = {
+      whitelist: ['TEST'],
+      esm: true,
+    };
+
+    service.generate(options); 
+    expect(output).to.equal('export default {\n  "TEST": "value"\n}');
   });
 });
