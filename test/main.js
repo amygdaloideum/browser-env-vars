@@ -8,11 +8,11 @@ const service = require('../index');
 let s;
 
 describe('Generate()', function () {
-  var readFileSyncStub;
+  var readFileSyncStub, unlinkSyncStub, existsSyncStub;
   let output;
 
   const mockEnvFile = content => s.stub(fs, 'readFileSync').returns(content);
-  const setEnvFileExists = exists => s.stub(fs, 'existsSync').returns(exists);
+  const setFileExists = (file, exists) => existsSyncStub.withArgs(file).returns(exists);
 
   beforeEach(function() {
     output = '';
@@ -21,7 +21,8 @@ describe('Generate()', function () {
     s.stub(fs, 'appendFileSync').callsFake(function fakeFn(path, data) {
       output += data;
     });
-    s.stub(fs, 'unlinkSync').callsFake(() => {});
+    unlinkSyncStub = s.stub(fs, 'unlinkSync');
+    existsSyncStub = s.stub(fs, 'existsSync');
   });
 
   afterEach(function() {
@@ -29,7 +30,7 @@ describe('Generate()', function () {
   });
 
   it('should take values from .env', function () {
-    setEnvFileExists(true);
+    setFileExists('.env', true);
     mockEnvFile('test=val\ntest2=val2');
   
     service.generate();
@@ -37,8 +38,8 @@ describe('Generate()', function () {
     expect(output).to.equal('module.exports = {"test":"val","test2":"val2"}');
   });
 
-  it('should use the whitelistet values from process.env', function () {
-    setEnvFileExists(false);
+  it('should use the whitelisted values from process.env', function () {
+    setFileExists('.env', false);
     mockEnvFile('');
     process.env.test='value';
     process.env.test2='value2';
@@ -50,8 +51,19 @@ describe('Generate()', function () {
     expect(output).to.equal('module.exports = {"test":"value","test2":"value2"}');
   });
 
+  it('should ignore whitelisted values that does not exist in the enviroment', function () {
+    setFileExists('.env', false);
+    mockEnvFile('');
+    process.env.TEST='value';
+    const options = {
+      whitelist: ['TEST', 'VALUE_THAT_DOES_NOT_EXIST_IN_THE_ENV'],
+    };
+    service.generate(options); 
+    expect(output).to.equal('module.exports = {"TEST":"value"}');
+  });
+
   it('should prioritize values from env over values read from the .env file', function () {
-    setEnvFileExists(true);
+    setFileExists('.env', true);
     mockEnvFile('DUPE=valueFromFile\nVALUE_FILE=fileValue');
     process.env.DUPE='valueFromProcessEnv';
     process.env.ENV_VALUE='envValue';
@@ -61,5 +73,61 @@ describe('Generate()', function () {
     };
     service.generate(options); 
     expect(output).to.equal('module.exports = {"DUPE":"valueFromProcessEnv","VALUE_FILE":"fileValue","ENV_VALUE":"envValue"}');
+  });
+
+  it('should delete the previous output file if it exists', function () {
+    setFileExists('.env', false);
+    setFileExists('config.js', true);
+    service.generate(); 
+    expect(unlinkSyncStub.called).to.be.true;
+  });
+
+  it('should not attempt to delete the previous output file if it does not exists', function () {
+    setFileExists('.env', false);
+    setFileExists('config.js', false);
+    service.generate(); 
+    expect(unlinkSyncStub.called).to.be.false;
+  });
+
+  it('should export a json file if the outFile option has a json file extension', function () {
+    setFileExists('.env', false);
+    setFileExists('config.js', false);
+    process.env.TEST='value';
+
+    const options = {
+      whitelist: ['TEST'],
+      outFile: 'config.json',
+    };
+
+    service.generate(options); 
+    expect(output).to.equal('{"TEST":"value"}');
+  });
+
+  it('should export a json file if the outFile option has a json file extension', function () {
+    setFileExists('.env', false);
+    setFileExists('config.js', false);
+    process.env.TEST='value';
+
+    const options = {
+      whitelist: ['TEST'],
+      outFile: 'config.json',
+    };
+
+    service.generate(options); 
+    expect(output).to.equal('{"TEST":"value"}');
+  });
+
+  it('should read from the specified readFile path if provided', function () {
+    setFileExists('.mycustomfile', true);
+    setFileExists('config.js', false);
+    mockEnvFile('TEST=value');
+
+    const options = {
+      whitelist: ['TEST'],
+      readFile: '.mycustomfile'
+    };
+
+    service.generate(options); 
+    expect(output).to.equal('module.exports = {"TEST":"value"}');
   });
 });
