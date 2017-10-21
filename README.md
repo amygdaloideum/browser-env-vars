@@ -6,7 +6,7 @@ Enable configuring your frontend application with environment variables. Reads f
 ## Install
 
 ```bash
-npm install dotenv --save
+npm install browser-env-vars --save
 ```
 ## Usage
 This script will read the variable `ENDPOINT_URL` the environment:
