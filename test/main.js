@@ -2,7 +2,6 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 
 const fs = require('fs');
-
 const service = require('../index');
 
 let s;

@@ -4,6 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const parse = require('dotenv').parse;
 
+if (!module.parent) {
+  runFromCli();
+}
+
 function generate(o) {
   // set up options
   o = o || {}
@@ -38,6 +42,16 @@ function generate(o) {
   }
 
   fs.appendFileSync(options.outFile, JSON.stringify(result));
+}
+
+function runFromCli() {
+  const argv = require('minimist')(process.argv.slice(2));
+  const options = {
+    outFile: argv.o || argv.outFile,
+    readFile: argv.f || argv.readFile,
+    whitelist: argv._,
+  };
+  generate(options);
 }
 
 module.exports = {
