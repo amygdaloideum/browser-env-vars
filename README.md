@@ -18,7 +18,7 @@ var options = {
     whitelist: ['ENDPOINT_URL'],
 };
 
-generateConfig();
+generateConfig(options);
 ```
 and produces the following file:
 ```js
